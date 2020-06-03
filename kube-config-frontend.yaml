@@ -1,0 +1,73 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: avenger-frontend
+  labels:
+    app: avenger-frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: avenger-frontend
+  template:
+    metadata:
+      labels:
+        app: avenger-frontend
+    spec:
+      containers:
+      - name: avenger-frontend
+        image: gcr.io/dtc-user18/external-image:v1.0.0
+        env:
+        - name: PORT
+          value: "80"
+        - name: SERVER
+          value: "http://avenger-backend-service"
+        ports:
+        - containerPort: 8080
+          name: "events-port"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "0.1"
+          limits:
+            memory: "512Mi"
+            cpu: "0.5"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 60
+
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: avenger-frontend-services
+spec: 
+  ports: 
+     -  port: 80
+        protocol: TCP
+        targetPort: 8080
+  selector: 
+    app: avenger-frontend
+  type: LoadBalancer
+
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: avenger-frontend-autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v2beta1
+    kind: Deployment
+    name: avenger-frontend
+  minReplicas: 3
+  maxReplicas: 6
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 60
