@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: avenger-frontend
-        image: gcr.io/dtc-user18/external-image:v1.0.0
+        image: gcr.io/devops-bootcamp-280910/external-image:v1.0.0
         env:
         - name: PORT
           value: "80"
